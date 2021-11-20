@@ -20,26 +20,27 @@ MainWindow::MainWindow(QWidget* parent)
 void MainWindow::saveFile() 
 {
     #ifdef EXTRA_VERBOSE
-        std::cerr << "Saving File to " << filename << "!\n";
+        std::cerr << "Saving File to " << filename.toStdString() << "!\n";
     #endif
     QString text = area->toPlainText();
     QFile fout(filename);
-    fout.open(QIODevice::Text);
+    fout.open(QIODevice::ReadWrite | QIODevice::Text);
     fout.write(text.toUtf8());
+    fout.write("\n");
     fout.close();
 }
 
 void MainWindow::saveAsFile()
 {
     #ifdef EXTRA_VERBOSE
-        std::cerr << "Saving File As to " << filename << "!\n";
+        std::cerr << "Saving File As to " << filename.toStdString() << "!\n";
     #endif
 }    //TODO
 
 void MainWindow::openFile() 
 {
     #ifdef EXTRA_VERBOSE
-        std::cerr << "Opening File " << filename << "!\n";
+        std::cerr << "Opening File " << filename.toStdString() << "!\n";
     #endif
     QFileDialog dialog(this);
     dialog.setFileMode(QFileDialog::AnyFile);
@@ -48,21 +49,10 @@ void MainWindow::openFile()
         fileNames = dialog.selectedFiles();
     filename = fileNames[0];
     QFile file(filename);
-    if (file.open(QIODevice::Text)) {
+    if (file.open(QIODevice::ReadWrite | QIODevice::Text)) {
         area->setPlainText(file.readAll());
         file.close();
     }
-    /*
-    std::ifstream fin;
-    fin.open(filename);
-    std::string stdText;
-    fin >> stdText;
-    QString text;
-    text.fromStdString(stdText);
-    QTextDocument *document = new QTextDocument(area);
-    document->setPlainText(text);
-    area->setDocument(document);
-    */
 }      
 
 void MainWindow::newFile()  
