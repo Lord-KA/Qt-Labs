@@ -11,7 +11,7 @@ public:
     CodeEditor(QWidget *parent = nullptr);
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
-    int lineNumberAreaWidth();
+    int  lineNumberAreaWidth();
 
 protected:
     void resizeEvent(QResizeEvent *event) override;

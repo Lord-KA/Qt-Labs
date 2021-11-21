@@ -12,6 +12,12 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QMessageBox>
+#include <QHBoxLayout>
+#include <QComboBox>
+#include <QFont>
+#include <QSpinBox>
+#include <QCheckBox>
+#include <QWidgetAction>
 
 #include <iostream>
 #include <string>
@@ -23,6 +29,8 @@
 #include "findreplacedialog.h"
 
 static const char DEFAULT_FILENAME[] = "untitled";
+
+static const QFont::StyleHint DEFAULT_FONT = QFont::Times;
 
 class MainWindow : public QMainWindow
 {
@@ -42,15 +50,18 @@ public slots:
     void saveFile();
     void saveAsFile();
 
-private:
-	QMenu *mainMenu, *editMenu;
-    QAction *actionQuit, *actionOpen, *actionSave, *actionNew, *actionSaveAs;
-    QAction *actionUndo, *actionRedo, *actionCopy, *actionPaste, *actionFind, *actionFindReplace;
+    void changeFont();
 
-    QToolBar *toolbar;
+private:
+	QMenu *mainMenu, *editMenu, *formatMenu, *viewMenu;
+    QAction *actionQuit, *actionOpen, *actionSave, *actionNew, *actionSaveAs;
+    QAction *actionUndo, *actionRedo, *actionCopy, *actionPaste, *actionFind, *actionFindReplace, *actionSelectAll;
+    QAction *actionChangeFont;
+
+    QToolBar   *toolbar;
     CodeEditor *area;
     FindDialog        *findDialog;
     FindReplaceDialog *findReplaceDialog;
-    QString filename = "";
+    QString filename;
 };
 

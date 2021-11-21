@@ -15,11 +15,25 @@ MainWindow::MainWindow(QWidget* parent)
     actionRedo  = editMenu->addAction("Redo",  this, [&, this](){this->area->redo();});
     actionCopy  = editMenu->addAction("Copy",  this, [&, this](){this->area->copy();});
     actionPaste = editMenu->addAction("Paste", this, [&, this](){this->area->paste();});
-
     actionFind        = editMenu->addAction("Find",               this, [&, this](){this->findDialog->show();});
     actionFindReplace = editMenu->addAction("Find and Replace",   this, [&, this](){this->findReplaceDialog->show();});
+    actionSelectAll   = editMenu->addAction("Select All",         this, [&, this](){this->area->selectAll();});
+    
+    formatMenu = menuBar()->addMenu("Format");
+    actionChangeFont = formatMenu->addAction("Change font", this, SLOT(changeFont()));
+    QWidgetAction *actionCheckBox = new QWidgetAction(formatMenu);
+    QCheckBox *wrapperBox = new QCheckBox(formatMenu);
+    wrapperBox->setText("Enable wrapping");
+    actionCheckBox->setDefaultWidget(wrapperBox);
+    connect(wrapperBox, &QCheckBox::stateChanged, this, [this, wrapperBox]()
+            {
+                this->area->setLineWrapMode((QPlainTextEdit::LineWrapMode)!wrapperBox->checkState());
+            });
+    formatMenu->addAction(actionCheckBox);
 
-    actionSelectAll   = editMenu->addAction("Select All", this, [&, this](){this->area->selectAll();});
+    viewMenu = menuBar()->addMenu("View");  //TODO
+    
+
 
     area = new CodeEditor();
 
@@ -36,6 +50,56 @@ MainWindow::MainWindow(QWidget* parent)
 	setFixedSize(1280, 720);
 
     setDefaultFilename();
+}
+
+void MainWindow::changeFont()
+{
+    #ifdef EXTRA_VERBOSE
+        std::cerr << "Changing font to ";
+    #endif
+    QFont currentFont = area->document()->defaultFont();
+    int fontSize = currentFont.pointSize();
+
+    QDialog *askFont = new QDialog(this);
+    askFont->setLayout(new QHBoxLayout());
+
+    QComboBox *fontBox = new QComboBox(askFont);
+    fontBox->addItem("Helvetica");
+    fontBox->addItem("Times");
+    fontBox->addItem("Courier");
+    fontBox->addItem("OldEnglish");
+    fontBox->addItem("System");
+
+    fontBox->setCurrentIndex((int)currentFont.styleHint());
+    QPushButton *buttonOk     = new QPushButton("Ok");
+    QPushButton *buttonCancel = new QPushButton("Cancel");
+
+    QSpinBox *sizeBox = new QSpinBox(askFont);
+    sizeBox->setMinimum(1);
+    sizeBox->setValue(currentFont.pointSize());
+
+    askFont->layout()->addWidget(fontBox);
+    askFont->layout()->addWidget(sizeBox);
+    askFont->layout()->addWidget(buttonOk);
+    askFont->layout()->addWidget(buttonCancel);
+    connect(buttonOk, &QPushButton::clicked, this, [&currentFont, &fontBox, &sizeBox, askFont]()
+            {
+                currentFont.setStyleHint((QFont::StyleHint)fontBox->currentIndex());
+                askFont->accept();
+                currentFont.setPointSize(sizeBox->value());
+            });
+    connect(buttonCancel, &QPushButton::clicked, this, [askFont]()
+            {
+                askFont->reject();
+            });
+ 
+    askFont->exec();
+
+    area->document()->setDefaultFont(currentFont);
+
+    #ifdef EXTRA_VERBOSE
+        std::cerr << currentFont.styleHint() << "!\n";
+    #endif
 }
 
 void MainWindow::exitApp()
