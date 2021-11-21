@@ -19,19 +19,14 @@
 
 #include "TextEditor.hpp"
 
+#include "finddialog.h"
+#include "findreplacedialog.h"
+
 static const char DEFAULT_FILENAME[] = "untitled";
 
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
-
-private:
-	QMenu *mainMenu, *editMenu;
-    QAction *actionQuit, *actionOpen, *actionSave, *actionNew, *actionSaveAs;
-    QAction *actionUndo, *actionRedo, *actionCopy, *actionPaste;
-    QToolBar *toolbar;
-    CodeEditor *area;
-    QString filename = "";
 
 public:
 	MainWindow(QWidget *parent = nullptr);
@@ -46,5 +41,16 @@ public slots:
     void newFile();
     void saveFile();
     void saveAsFile();
+
+private:
+	QMenu *mainMenu, *editMenu;
+    QAction *actionQuit, *actionOpen, *actionSave, *actionNew, *actionSaveAs;
+    QAction *actionUndo, *actionRedo, *actionCopy, *actionPaste, *actionFind, *actionFindReplace;
+
+    QToolBar *toolbar;
+    CodeEditor *area;
+    FindDialog        *findDialog;
+    FindReplaceDialog *findReplaceDialog;
+    QString filename = "";
 };
 

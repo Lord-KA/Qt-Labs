@@ -3,20 +3,33 @@
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent)
 {
-	mainMenu     = menuBar()->addMenu(tr("&File"));
-	actionQuit   = mainMenu->addAction(tr("&Quit"),    this, SLOT(quit()));
-	actionOpen   = mainMenu->addAction(tr("&Open"),    this, SLOT(openFile()));
-	actionNew    = mainMenu->addAction(tr("&New"),     this, SLOT(newFile()));
-	actionSave   = mainMenu->addAction(tr("&Save"),    this, SLOT(saveFile()));
-	actionSaveAs = mainMenu->addAction(tr("&Save as"), this, SLOT(saveAsFile()));
+	mainMenu = menuBar()->addMenu("File");
+	actionQuit   = mainMenu->addAction("Quit",    this, SLOT(quit()));
+	actionOpen   = mainMenu->addAction("Open",    this, SLOT(openFile()));
+	actionNew    = mainMenu->addAction("New",     this, SLOT(newFile()));
+	actionSave   = mainMenu->addAction("Save",    this, SLOT(saveFile()));
+	actionSaveAs = mainMenu->addAction("Save as", this, SLOT(saveAsFile()));
 
-    editMenu     = menuBar()->addMenu("&Edit");
-    actionUndo   = editMenu->addAction("Undo",   this, [&, this](){this->area->undo();});
-    actionRedo   = editMenu->addAction("Redo",   this, [&, this](){this->area->redo();});
-    actionCopy   = editMenu->addAction("Copy",   this, [&, this](){this->area->copy();});
-    actionPaste  = editMenu->addAction("Paste",  this, [&, this](){this->area->paste();});
+    editMenu = menuBar()->addMenu("Edit");
+    actionUndo  = editMenu->addAction("Undo",  this, [&, this](){this->area->undo();});
+    actionRedo  = editMenu->addAction("Redo",  this, [&, this](){this->area->redo();});
+    actionCopy  = editMenu->addAction("Copy",  this, [&, this](){this->area->copy();});
+    actionPaste = editMenu->addAction("Paste", this, [&, this](){this->area->paste();});
+
+    actionFind        = editMenu->addAction("Find",               this, [&, this](){this->findDialog->show();});
+    actionFindReplace = editMenu->addAction("Find and Replace",   this, [&, this](){this->findReplaceDialog->show();});
+
+    actionSelectAll   = editMenu->addAction("Select All", this, [&, this](){this->area->selectAll();});
 
     area = new CodeEditor();
+
+    findDialog = new FindDialog(this);
+    findDialog->setModal(false);
+    findDialog->setPlainTextEdit(area);
+     
+    findReplaceDialog = new FindReplaceDialog(this);
+    findReplaceDialog->setModal(false);
+    findReplaceDialog->setPlainTextEdit(area);
     
     setCentralWidget(area);
 
@@ -84,12 +97,7 @@ void MainWindow::saveFile()
 
 void MainWindow::saveAsFile()
 {
-    QFileDialog dialog(this);
-    dialog.setFileMode(QFileDialog::AnyFile);
-    QStringList fileNames = {};
-    if (dialog.exec())
-        fileNames = dialog.selectedFiles();
-    filename = fileNames[0];
+    filename = QFileDialog::getSaveFileName(this, "Save file as", ".");
 
     #ifdef EXTRA_VERBOSE
         std::cerr << "Saving File As to " << filename.toStdString() << "!\n";
@@ -100,12 +108,7 @@ void MainWindow::saveAsFile()
 
 void MainWindow::openFile() 
 {
-    QFileDialog dialog(this);
-    dialog.setFileMode(QFileDialog::AnyFile);
-    QStringList fileNames = {};
-    if (dialog.exec())
-        fileNames = dialog.selectedFiles();
-    filename = fileNames[0];
+    filename = QFileDialog::getOpenFileName(this, "Open", ".");
 
     #ifdef EXTRA_VERBOSE
         std::cerr << "Opening File " << filename.toStdString() << "!\n";
