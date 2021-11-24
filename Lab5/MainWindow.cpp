@@ -69,6 +69,7 @@ void MainWindow::changeFont()
     fontBox->addItem("Courier");
     fontBox->addItem("OldEnglish");
     fontBox->addItem("System");
+    fontBox->addItem("Any");
 
     fontBox->setCurrentIndex((int)currentFont.styleHint());
     QPushButton *buttonOk     = new QPushButton("Ok");
@@ -117,7 +118,7 @@ void MainWindow::quit()
         std::cerr << "Quit Dialog!\n";
     #endif
     
-    QMessageBox::StandardButton reply = QMessageBox::question(this, "Exit", "Exit without saving?",
+    QMessageBox::StandardButton reply = QMessageBox::question(this, "Exit", "Close without saving?",
                                                                 QMessageBox::Save   | 
                                                                 QMessageBox::Cancel |
                                                                 QMessageBox::Close    );
