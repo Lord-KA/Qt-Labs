@@ -1,92 +1,50 @@
-#include "highlighter.h"
+#include "SyntaxHighlighter.hpp"
+#include <iostream>                 //TODO remove; for debug only
 
-SyntaxHighlighter::SyntaxHighlighter(QTextDocument *parent, QString FileType, QString theme, int std)
-    : QSyntaxSyntaxHighlighter(parent), FileType(FileType)
+SyntaxHighlighter::SyntaxHighlighter(QTextDocument *parent, QString fileType, QString theme, int std)
+    : QSyntaxHighlighter(parent), fileType(fileType), stdVersion(std)
 {
-    if (std == 99 || std == 14 || std == 20)
-    {
-        FileType = "cpp";
-        this->cplusplusSTD = std;
+    cSTD   = std;
+    cppSTD = std;
+
+    /*
+    if (std == 99 || std == 14 || std == 20) {
+        fileType = "cpp";
+        cppSTD   = std;
+    } else if (std == 11 || std == 18) {
+        fileType = "c";
+        cSTD     = std;
     }
-    if (std == 11 || std == 18)
-    {
-        FileType = "c";
-        this->cSTD = std;
-    }
+    */
 
     commentStartExpression = QRegularExpression("");
     commentEndExpression = QRegularExpression("");
-    setupSyntaxHighlighter(FileType, theme);
+    setupSyntaxHighlighter(fileType, theme);
 }
-void SyntaxHighlighter::setupSyntaxHighlighter(QString FileType, QString theme)
+void SyntaxHighlighter::setupSyntaxHighlighter(QString fileType, QString theme)
 {
-    compiledLanguages = QString("c h cpp hpp java").split(" ");
-    scriptingLanguages = QString("bat hs js lua php py rb sh vb").split(" ");
-    markupLanguages = QString("htm html json xml").split(" ");
+    languages = QString("c h cpp hpp").split(" ");
 
     setColorValues(theme);
 
-    if (compiledLanguages.contains(FileType)){
-        setSyntax(FileType);
-    }
-    else if (scriptingLanguages.contains(FileType))
-    {
-        if (FileType == "py")
-        {
-            knowedLang = 1;
-            setupKeywordPatterns(FileType);
-            setScriptingLanguageRules();
-        }
-        else setScriptingLanguageRules();
-    }
-    else if (markupLanguages.contains(FileType))
-    {
-        setMarkupLanguageRules();
-    }
-    else if (FileType == "asm")
-    {
-        knowedLang = 1;
-        setAsmRules();
-    }
-    else if (FileType == "css")
-    {
-        knowedLang = 1;
-        setCssRules();
-    }
-    else if (FileType == "sql")
-    {
-        knowedLang = 1;
-        setSqlRules();
-    }
+    if (languages.contains(fileType))
+        setSyntax(fileType);
     else
-    {
-        knowedLang = 0;
-        // TODO set non highlight Rules!
-    }
+        knownLang = 0;                           // TODO set non highlight Rules!
 }
-void SyntaxHighlighter::setSyntax(QString FileType)
+void SyntaxHighlighter::setSyntax(QString fileType)
 {
-    if (cSTD !=0 )
-    {
-        knowedLang = 1;
-        setupKeywordPatterns(FileType, cSTD);
-        setCompiledLanguageRules();
-    }
-    else if (FileType == "cpp" || FileType == "hpp" || FileType == "h")
-    {
-        knowedLang = 1;
-        setupKeywordPatterns(FileType, cplusplusSTD);
-        setCompiledLanguageRules();
-    }
-    else if (FileType == "c")
-    {
-        knowedLang = 1;
+    if (fileType == "cpp" || fileType == "hpp" || fileType == "h") {
+        knownLang = 1;
+        setupKeywordPatterns(fileType, cppSTD);
+        setLangRules();
+    } else if (fileType == "c") {
+        knownLang = 1;
         cSTD = 11;
-        setupKeywordPatterns(FileType, cSTD);
-        setCompiledLanguageRules();
-    }
-    else{
-        knowedLang = 0;
+        setupKeywordPatterns(fileType, cSTD);
+        setLangRules();
+    } else {
+        knownLang = 0;
     }
 }
 
@@ -95,7 +53,7 @@ void SyntaxHighlighter::setTheme(QString filetype, QString theme){
     rehighlight();
 }
 
-void SyntaxHighlighter::setCompiledLanguageRules(){
+void SyntaxHighlighter::setLangRules(){
     HighlightingRule rule;
 
     //Functions
@@ -106,7 +64,7 @@ void SyntaxHighlighter::setCompiledLanguageRules(){
 
     keywordFormat.setForeground(keywordColor);
     keywordFormat.setFontWeight(QFont::Bold);
-    if(!knowedLang)
+    if(!knownLang)
     {
         QStringList keywordPatterns;
         keywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
@@ -176,309 +134,11 @@ void SyntaxHighlighter::setCompiledLanguageRules(){
     commentEndExpression = QRegularExpression("\\*/");
 }
 
-void SyntaxHighlighter::setScriptingLanguageRules(){
-
-    HighlightingRule rule;
-    //Functions
-    functionFormat.setFontItalic(true);
-    functionFormat.setForeground(functionsColor);
-    rule.pattern = QRegularExpression("\\b[A-Za-z0-9_]+(?=\\()");
-    rule.format = functionFormat;
-    highlightingRules.append(rule);
-
-    keywordFormat.setForeground(keyword2Color);
-    keywordFormat.setFontWeight(QFont::Bold);
-    if(!knowedLang)
-    {
-        QStringList keywordPatterns;
-        keywordPatterns << "\\bdef\\b" << "\\bnull\\b" << "\\bimport\\b" << "\\breturn\\b"
-                        << "\\bbreak\\b" << "\\bdel\\b" << "\\brequire\\b"
-                        << "\\bfor\\b" << "\\bforeach\\b" << "\\bif\\b" << "\\belse\\b"
-                        << "\\bin\\b" << "\\bdo\\b" << "\\bwhile\\b" << "\\bnot\\b"
-                        << "\\band\\b" << "\\bor\\b" << "\\bwith\\b" << "\\bas\\b"
-                        << "\\bclass\\b" << "\\bprivate\\b" << "\\bpublic\\b" << "\\bnew\\b"
-                        << "\\bprint\\b" << "\\becho\\b" << "\\btry\\b" << "\\bexcept\\b"
-                        << "\\bend\\b";
-        for (const QString &pattern : keywordPatterns) {
-            rule.pattern = QRegularExpression(pattern);
-            rule.format = keywordFormat;
-            highlightingRules.append(rule);
-        }
-    }
-    else
-    {
-        for (const QString &pattern : difKeywordPatterns) {
-            rule.pattern = QRegularExpression(pattern);
-            rule.format = keywordFormat;
-            highlightingRules.append(rule);
-        }
-    }
-
-    operatorFormat.setForeground(operatorColor);
-    rule.pattern = QRegularExpression("\\b[+-*/=<>]+\\b");
-    rule.format = operatorFormat;
-    highlightingRules.append(rule);
-
-    operatorFormat.setForeground(operatorColor);
-    rule.pattern = QRegularExpression("\\s[+-*/=<>]+\\s");
-    rule.format = operatorFormat;
-    highlightingRules.append(rule);
-
-    phpVarFormat.setForeground(varColor);
-    rule.pattern = QRegularExpression("\\$\\w+\\b");
-    rule.format = phpVarFormat;
-    highlightingRules.append(rule);
-
-    numberFormat.setForeground(numColor);
-    rule.pattern = QRegularExpression("\\b[0-9\\.]+\\b");
-    rule.format = numberFormat;
-    highlightingRules.append(rule);
-
-    quotationFormat.setForeground(valueColor);
-    rule.pattern = QRegularExpression("\".*\"");
-    rule.format = quotationFormat;
-    highlightingRules.append(rule);
-
-    quotationFormat.setForeground(valueColor);
-    rule.pattern = QRegularExpression("'.*'");
-    rule.format = quotationFormat;
-    highlightingRules.append(rule);
-
-    singleLineCommentFormat.setFontItalic(true);
-    if(FileType != "py")
-    {
-        singleLineCommentFormat.setFontItalic(true);
-        singleLineCommentFormat.setForeground(commentColor);
-        rule.pattern = QRegularExpression("//[^\n]*");
-        rule.format = singleLineCommentFormat;
-        highlightingRules.append(rule);
-    }
-    else
-    {
-        rule.pattern = QRegularExpression("[from]?.*import.?.*");
-        rule.format = headerFileFormat;
-        highlightingRules.append(rule);
-    }
-
-    singleLineCommentFormat.setForeground(commentColor);
-    rule.pattern = QRegularExpression("#[^\n]*");
-    rule.format = singleLineCommentFormat;
-    highlightingRules.append(rule);
-
-    multiLineCommentFormat.setFontItalic(true);
-    multiLineCommentFormat.setForeground(commentColor);
-
-    commentStartExpression = QRegularExpression("/\\*");
-    commentEndExpression = QRegularExpression("\\*/");
-}
-
-void SyntaxHighlighter::setMarkupLanguageRules(){
-    HighlightingRule rule;
-
-    functionFormat.setFontItalic(true);
-    functionFormat.setForeground(functionsColor);
-    rule.pattern = QRegularExpression("\\b[A-Za-z0-9_]+(?=\\()");
-    rule.format = functionFormat;
-    highlightingRules.append(rule);
-
-    tagFormat.setForeground(tagColor);
-    rule.pattern = QRegularExpression("<\\w+\\s+[^>]*>");
-    rule.format = tagFormat;
-    highlightingRules.append(rule);
-
-    tagFormat.setForeground(tagColor);
-    rule.pattern = QRegularExpression("<\\w+>");
-    rule.format = tagFormat;
-    highlightingRules.append(rule);
-
-    tagFormat.setForeground(tagColor);
-    rule.pattern = QRegularExpression("</\\b\\w+\\b>");
-    rule.format = tagFormat;
-    highlightingRules.append(rule);
-
-    keywordFormat.setForeground(htmlAttributesColor);
-    QStringList keywordPatterns;
-    keywordPatterns << "\\bclass\\b" << "\\bid\\b" << "\\bhref\\b" << "\\bsrc\\b"
-                    << "\\blang\\b" << "\\bcharset\\b" << "\\bname\\b" << "\\bcontent\\b"
-                    << "\\brel\\b" << "\\btype\\b";
-    for (const QString &pattern : keywordPatterns) {
-        rule.pattern = QRegularExpression(pattern);
-        rule.format = keywordFormat;
-        highlightingRules.append(rule);
-    }
-
-    quotationFormat.setForeground(valueColor);
-    rule.pattern = QRegularExpression("\".*\"");
-    rule.format = quotationFormat;
-    highlightingRules.append(rule);
-
-    quotationFormat.setForeground(valueColor);
-    rule.pattern = QRegularExpression("'.*'");
-    rule.format = quotationFormat;
-    highlightingRules.append(rule);
-
-    multiLineCommentFormat.setFontItalic(true);
-    multiLineCommentFormat.setForeground(commentColor);
-
-    commentStartExpression = QRegularExpression("<!--");
-    commentEndExpression = QRegularExpression("-->");
-}
-
-void SyntaxHighlighter::setAsmRules(){
-    HighlightingRule rule;
-
-    functionFormat.setForeground(functionsColor);
-    rule.pattern = QRegularExpression("\\b[A-Za-z0-9_<>-@]+:");
-    rule.format = functionFormat;
-    highlightingRules.append(rule);
-
-    numberFormat.setForeground(numColor);
-    rule.pattern = QRegularExpression("\\b[0-9a-fx\\.]+\\b");
-    rule.format = numberFormat;
-    highlightingRules.append(rule);
-
-    keywordFormat.setForeground(keyword2Color);
-    keywordFormat.setFontWeight(QFont::Bold);
-    QStringList keywordPatterns;
-    keywordPatterns << "\\bcall\\b" << "\\bpush\\b" << "\\bpop\\b" << "\\blea\\b"
-                    << "\\bret\\b" << "\\bcmp\\b" << "\\bmov\\b" << "\\bint\\b"
-                    << "\\bjmp\\b" << "\\bje\\b" << "\\bjne\\b" << "\\bjl\\b"
-                    << "\\bjg\\b" << "\\bjge\\b" << "\\bjle\\b" << "\\bjz\\b"
-                    << "\\bjnz\\b" << "\\bjb\\b" << "\\bja\\b" << "\\bjae\\b"
-                    << "\\bjbe\\b" << "\\bjs\\b" << "\\bjns\\b" << "\\bleave\\b"
-                    << "\\bxor\\b" << "\\bnot\\b" << "\\band\\b" << "\\bor\\b"
-                    << "\\bsal\\b" << "\\bsar\\b" << "\\bshl\\b" << "\\bshr\\b"
-                    << "\\bnop\\b" << "\\btest\\b" << "\\bxchg\\b"
-                    << "\\badd\\b" << "\\bsub\\b" << "\\bmul\\b" << "\\bdiv\\b";
-
-    for (const QString &pattern : keywordPatterns) {
-        rule.pattern = QRegularExpression(pattern);
-        rule.format = keywordFormat;
-        highlightingRules.append(rule);
-    }
-
-    quotationFormat.setForeground(valueColor);
-    rule.pattern = QRegularExpression("\".*\"");
-    rule.format = quotationFormat;
-    highlightingRules.append(rule);
-
-    quotationFormat.setForeground(valueColor);
-    rule.pattern = QRegularExpression("'.*'");
-    rule.format = quotationFormat;
-    highlightingRules.append(rule);
-
-    singleLineCommentFormat.setFontItalic(true);
-    singleLineCommentFormat.setForeground(commentColor);
-    rule.pattern = QRegularExpression("//[^\n]*");
-    rule.format = singleLineCommentFormat;
-    highlightingRules.append(rule);
-
-    singleLineCommentFormat.setForeground(commentColor);
-    rule.pattern = QRegularExpression(";[^\n]*");
-    rule.format = singleLineCommentFormat;
-    highlightingRules.append(rule);
-
-    multiLineCommentFormat.setFontItalic(true);
-    multiLineCommentFormat.setForeground(commentColor);
-
-    commentStartExpression = QRegularExpression("/\\*");
-    commentEndExpression = QRegularExpression("\\*/");
-}
-
-void SyntaxHighlighter::setCssRules(){
-    HighlightingRule rule;
-    keywordFormat.setForeground(keywordColor);
-    keywordFormat.setFontWeight(QFont::Bold);
-    QStringList keywordPatterns;
-    keywordPatterns << "\\bhtml\\b" << "\\bbody\\b" << "\\bp\\b" << "\\ba\\b" << "\\bhr\\b"
-                    << "\\bimg\\b" << "\\bheader\\b" << "\\bfooter\\b" << "\\bh1\\b"
-                    << "\\bh2\\b" << "\\bh3\\b" << "\\bh4\\b" << "\\bh5\\b" << "\\bh6\\b"
-                    << "\\bul\\b" << "\\bol\\b" << "\\bli\\b" << "\\bmain\\b" << "\\bnav\\b"
-                    << "\\bmenu\\b" << "\\bmenuitem\\b" << "\\bq\\b" << "\\btable\\b" << "\\btd\\b";
-    for (const QString &pattern : keywordPatterns) {
-        rule.pattern = QRegularExpression(pattern);
-        rule.format = keywordFormat;
-        highlightingRules.append(rule);
-    }
-
-    numberFormat.setForeground(numColor);
-    rule.pattern = QRegularExpression("\\b[0-9\\.]+\\b");
-    rule.format = numberFormat;
-    highlightingRules.append(rule);
-
-    valueFormat.setForeground(valueColor);
-    rule.pattern = QRegularExpression("\\b[0-9\\.]+[pt|px]+\\b");
-    rule.format = valueFormat;
-    highlightingRules.append(rule);
-
-    attributeFormat.setForeground(cssAttributesColor);
-    rule.pattern = QRegularExpression("\\w+:");
-    rule.format = attributeFormat;
-    highlightingRules.append(rule);
-
-    attributeFormat.setForeground(cssAttributesColor);
-    rule.pattern = QRegularExpression("\\w+-\\w+:");
-    rule.format = attributeFormat;
-    highlightingRules.append(rule);
-
-    idFormat.setForeground(cssClassesIDsColor);
-    rule.pattern = QRegularExpression("#\\w+\\b");
-    rule.format = idFormat;
-    highlightingRules.append(rule);
-
-    classFormat.setForeground(cssClassesIDsColor);
-    rule.pattern = QRegularExpression("\\.\\w+\\b");
-    rule.format = classFormat;
-    highlightingRules.append(rule);
-
-    quotationFormat.setForeground(valueColor);
-    rule.pattern = QRegularExpression("\".*\"");
-    rule.format = quotationFormat;
-    highlightingRules.append(rule);
-
-    quotationFormat.setForeground(valueColor);
-    rule.pattern = QRegularExpression("'.*'");
-    rule.format = quotationFormat;
-    highlightingRules.append(rule);
-
-    commentStartExpression = QRegularExpression("/\\*");
-    commentEndExpression = QRegularExpression("\\*/");
-}
-
-void SyntaxHighlighter::setSqlRules(){
-    HighlightingRule rule;
-
-    keywordFormat.setForeground(keywordColor);
-    keywordFormat.setFontWeight(QFont::Bold);
-    QStringList keywordPatterns;
-    keywordPatterns << "\\bSELECT\\b" << "\\bFROM\\b" << "\\bWHERE\\b" << "\\bAND\\b" << "\\bOR\\b"
-                    << "\\bDELETE\\b" << "\\bORDER\\b" << "\\bUNION\\b" << "\\bUPDATE\\b"
-                    << "\\bINSERT\\b" << "\\bINTO\\b" << "\\bVALUES\\b" << "\\bCREATE\\b"
-                    << "\\bTABLE\\b" << "\\bAS\\b" << "\\bBY\\b" << "\\bFOR\\b"
-                    << "\\bIF\\b" << "\\bNOT\\b" << "\\bEXISTS\\b";
-    for (const QString &pattern : keywordPatterns) {
-        rule.pattern = QRegularExpression(pattern);
-        rule.format = keywordFormat;
-        highlightingRules.append(rule);
-    }
-
-    quotationFormat.setForeground(valueColor);
-    rule.pattern = QRegularExpression("\".*\"");
-    rule.format = quotationFormat;
-    highlightingRules.append(rule);
-
-    quotationFormat.setForeground(valueColor);
-    rule.pattern = QRegularExpression("'.*'");
-    rule.format = quotationFormat;
-    highlightingRules.append(rule);
-
-    commentStartExpression = QRegularExpression("/\\*");
-    commentEndExpression = QRegularExpression("\\*/");
-}
-
-void SyntaxHighlighter::setupKeywordPatterns(QString FileType, int stdVersion)
+void SyntaxHighlighter::setupKeywordPatterns(QString fileType, int stdVersion)
 {
-    if ((FileType == "cpp" || FileType == "hpp" || FileType == "h") && stdVersion == 99)
+    std::cerr << "fileType = " << fileType.toStdString() << " | stdVersion = " << stdVersion << " \n";      //TODO remove
+
+    if ((fileType == "cpp" || fileType == "hpp" || fileType == "h") && stdVersion == 99)
     {
      difKeywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
                         << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
@@ -507,7 +167,7 @@ void SyntaxHighlighter::setupKeywordPatterns(QString FileType, int stdVersion)
                         << "\\boperator\\b" << "\\breinterpret_cast\\b" << "\\btypeid\\b"
                         << "\\bstatic_cast\\b" << "\\bwchar_t\\b" << "\\bfinal\\b" << "\\boverride\\b";
     }
-    else if ((FileType == "cpp" || FileType == "hpp" || FileType == "h") && stdVersion == 14)
+    else if ((fileType == "cpp" || fileType == "hpp" || fileType == "h") && stdVersion == 14)
     {
          difKeywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
                             << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
@@ -545,7 +205,7 @@ void SyntaxHighlighter::setupKeywordPatterns(QString FileType, int stdVersion)
 
 
     }
-    else if ((FileType == "cpp" || FileType == "hpp" || FileType == "h") && stdVersion == 20)
+    else if ((fileType == "cpp" || fileType == "hpp" || fileType == "h") && stdVersion == 20)
     {
          difKeywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
                             << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
@@ -626,35 +286,6 @@ void SyntaxHighlighter::setupKeywordPatterns(QString FileType, int stdVersion)
                             << "\\b_Complex\\b" << "\\b_Generic\\b" << "\\b_Imaginary\\b" << "\\b_Noreturn\\b"
                             << "\\b_Static_assert\\b" << "\\b_Thread_local\\b";
         }
-    else if (FileType == "py"){
-        difKeywordPatterns     << "\\band\\b" << "\\bas\\b" << "\\bassert\\b" << "\\bbreak\\b"
-                               << "\\bcontinue\\b" << "\\bdef\\b" << "\\bdel\\b"
-                               << "\\belif\\b" << "\\belse\\b" << "\\bexcept\\b"
-                               << "\\bfinally\\b" << "\\bfor\\b" << "\\bfrom\\b" << "\\bglobal\\b"
-                               << "\\bif\\b" << "\\bimport\\b" << "\\bin\\b" << "\\bis\\b"
-                               << "\\blambda\\b" << "\\bnot\\b" << "\\bor\\b" << "\\bpass\\b"
-                               << "\\bprint\\b" << "\\braise\\b" << "\\breturn\\b" << "\\btry\\b"
-                               << "\\bwhile\\b" << "\\bwith\\b" << "\\byield\\b"
-                               << "\\bFalse\\b" << "\\bawait\\b" << "\\bNone\\b" << "\\bTrue\\b"
-                               << "\\basync\\b" << "\\bnonlocal\\b" << "\\bclass\\b";
-    }
-    else if (FileType == "java"){
-
-        difKeywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
-                        << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
-                        << "\\blong\\b" << "\\btrue\\b" << "\\bfalse\\b" << "\\bboolean\\b"
-                        << "\\bnull\\b" << "\\bthis\\b" << "\\bfinal\\b"
-                        << "\\band\\b" << "\\bor\\b" << "\\bxor\\b"
-                        << "\\bconst\\b" << "\\bstatic\\b" << "\\bsigned\\b" << "\\bunsigned\\b"
-                        << "\\bimport\\b" << "\\bnamespace\\b" << "\\breturn\\b" << "\\busing\\b"
-                        << "\\bfor\\b" << "\\bwhile\\b" << "\\bif\\b" << "\\belse\\b"
-                        << "\\bcase\\b" << "\\bswitch\\b" << "\\bdo\\b" << "\\bunion\\b"
-                        << "\\bnew\\b" << "\\bclass\\b" << "\\bprivate\\b" << "\\bprotected\\b"
-                        << "\\bpublic\\b" << "\\bvirtual\\b" << "\\bslots\\b" << "\\bvolatile\\b"
-                        << "\\babstract\\b" << "\\bextends\\b" << "\\bimplements\\b" << "\\bsuper\\b"
-                        << "\\btemplate\\b" << "\\btypedef\\b" << "\\btypename\\b"
-                        << "\\btry\\b" << "\\bcatch\\b" << "\\bthrow\\b" << "\\bbreak\\b";
-    }
 }
 
 void SyntaxHighlighter::setColorValues(QString theme){

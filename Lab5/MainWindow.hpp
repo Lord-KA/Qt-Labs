@@ -24,6 +24,7 @@
 #include <fstream>
 
 #include "TextEditor.hpp"
+#include "SyntaxHighlighter.hpp"
 
 #include "finddialog.h"
 #include "findreplacedialog.h"
@@ -63,5 +64,7 @@ private:
     FindDialog        *findDialog;
     FindReplaceDialog *findReplaceDialog;
     QString filename;
+
+    SyntaxHighlighter *syntaxHighlighter;
 };
 

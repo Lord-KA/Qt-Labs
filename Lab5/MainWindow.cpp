@@ -33,8 +33,6 @@ MainWindow::MainWindow(QWidget* parent)
 
     viewMenu = menuBar()->addMenu("View");  //TODO
     
-
-
     area = new CodeEditor();
 
     findDialog = new FindDialog(this);
@@ -50,6 +48,8 @@ MainWindow::MainWindow(QWidget* parent)
 	setFixedSize(1280, 720);
 
     setDefaultFilename();
+
+    syntaxHighlighter = new SyntaxHighlighter(area->document(), "hpp", "tomorrow", 14);
 }
 
 void MainWindow::changeFont()

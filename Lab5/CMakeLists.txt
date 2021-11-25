@@ -35,6 +35,8 @@ add_executable( run
     TextEditor.cpp 
     MainWindow.hpp 
     TextEditor.hpp
+    SyntaxHighlighter.hpp
+    SyntaxHighlighter.cpp
 )
 
 target_link_libraries(run Qt5::Widgets)
