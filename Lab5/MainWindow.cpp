@@ -21,17 +21,34 @@ MainWindow::MainWindow(QWidget* parent)
     
     formatMenu = menuBar()->addMenu("Format");
     actionChangeFont = formatMenu->addAction("Change font", this, SLOT(changeFont()));
-    QWidgetAction *actionCheckBox = new QWidgetAction(formatMenu);
+    QWidgetAction *actionWrapperBox = new QWidgetAction(formatMenu);
     QCheckBox *wrapperBox = new QCheckBox(formatMenu);
     wrapperBox->setText("Enable wrapping");
-    actionCheckBox->setDefaultWidget(wrapperBox);
+    actionWrapperBox->setDefaultWidget(wrapperBox);
     connect(wrapperBox, &QCheckBox::stateChanged, this, [this, wrapperBox]()
             {
                 this->area->setLineWrapMode((QPlainTextEdit::LineWrapMode)!wrapperBox->checkState());
             });
-    formatMenu->addAction(actionCheckBox);
+    formatMenu->addAction(actionWrapperBox);
 
-    viewMenu = menuBar()->addMenu("View");  //TODO
+    viewMenu = menuBar()->addMenu("View");
+    actionChangeBackgroundColor = viewMenu->addAction("Change background color", this, SLOT(changeBackgroundColor()));
+    QWidgetAction *actionHideLineNumBox = new QWidgetAction(formatMenu);
+    QCheckBox *hideLineNumBox = new QCheckBox(formatMenu);
+    hideLineNumBox->setText("Hide line numbers");
+    actionHideLineNumBox->setDefaultWidget(hideLineNumBox);
+    connect(hideLineNumBox, &QCheckBox::stateChanged, this, [this, hideLineNumBox]()
+            {
+                if (hideLineNumBox->checkState())
+                    area->hideLineNumberArea();
+                else
+                    area->showLineNumberArea();
+                area->updateLineNumberAreaWidth();
+            });
+    viewMenu->addAction(actionHideLineNumBox);
+    
+
+
     
     area = new CodeEditor();
 
@@ -49,7 +66,18 @@ MainWindow::MainWindow(QWidget* parent)
 
     setDefaultFilename();
 
-    syntaxHighlighter = new SyntaxHighlighter(area->document(), "cpp", "tomorrow", 20);
+    syntaxHighlighter = new SyntaxHighlighter(area->document(), "txt", "tomorrow", -1);
+}
+
+void MainWindow::changeBackgroundColor()
+{
+    QColorDialog *dialog = new QColorDialog(QColor("white"), this);
+    dialog->exec();
+
+    QPalette p = area->palette();
+    p.setColor(QPalette::Active, QPalette::Base, dialog->selectedColor());
+    area->setPalette(p);
+    area->setBackgroundVisible(false);
 }
 
 void MainWindow::changeFont()
@@ -135,7 +163,7 @@ void MainWindow::setDefaultFilename()
     std::ifstream file;
     do {
         file.close();
-        filename = DEFAULT_FILENAME + QString::number(num);
+        filename = DEFAULT_FILENAME + QString::number(num) + "." + DEFAULT_FILETYPE;
         file.open(filename.toStdString(), std::ifstream::in);
         ++num;
     } while (file.good());

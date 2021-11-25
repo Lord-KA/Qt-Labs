@@ -18,6 +18,7 @@
 #include <QSpinBox>
 #include <QCheckBox>
 #include <QWidgetAction>
+#include <QColorDialog>
 
 #include <iostream>
 #include <string>
@@ -30,6 +31,7 @@
 #include "findreplacedialog.h"
 
 static const char DEFAULT_FILENAME[] = "untitled";
+static const char DEFAULT_FILETYPE[] = "txt";
 
 static const QFont::StyleHint DEFAULT_FONT = QFont::Times;
 
@@ -53,11 +55,14 @@ public slots:
 
     void changeFont();
 
+    void changeBackgroundColor();
+
 private:
 	QMenu *mainMenu, *editMenu, *formatMenu, *viewMenu;
     QAction *actionQuit, *actionOpen, *actionSave, *actionNew, *actionSaveAs;
     QAction *actionUndo, *actionRedo, *actionCopy, *actionPaste, *actionFind, *actionFindReplace, *actionSelectAll;
     QAction *actionChangeFont;
+    QAction *actionChangeBackgroundColor;
 
     QToolBar   *toolbar;
     CodeEditor *area;

@@ -7,9 +7,9 @@
 
 #include <iostream>
 
-static const size_t MAX_FILETYPE_LEN = 10;
+static const size_t MAX_FILETYPE_LEN = 100;
 static const char SUPPORTED_THEMES[][MAX_FILETYPE_LEN] = {"monokai", "tomorrow", "tomorrowNight", "solarized"};
-static const char SUPPORTED_FILETYPES[][MAX_FILETYPE_LEN] = {"c", "h", "cpp", "hpp", ""};
+static const char SUPPORTED_FILETYPES[][MAX_FILETYPE_LEN] = {"c", "h", "cpp", "hpp", "txt", ""};
 static const int  SUPPORTED_STDVERSIONS[] = {99, 11, 14, 20, 18};
 
 class SyntaxHighlighter : QSyntaxHighlighter {

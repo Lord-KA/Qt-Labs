@@ -31,6 +31,9 @@ void SyntaxHighlighter::setTheme(QString filetype, QString theme)
 
 void SyntaxHighlighter::setLangRules()
 {
+    if (fileType == "txt") 
+        return;
+
     HighlightingRule rule;
 
     //Functions
@@ -262,7 +265,8 @@ void SyntaxHighlighter::setupKeywordPatterns(QString fileType, int stdVersion)
                             << "\\b_Alignas\\b" << "\\b_Alignof\\b" << "\\b_Atomic\\b" << "\\b_Bool\\b"
                             << "\\b_Complex\\b" << "\\b_Generic\\b" << "\\b_Imaginary\\b" << "\\b_Noreturn\\b"
                             << "\\b_Static_assert\\b" << "\\b_Thread_local\\b";
-    } else {
+
+    } else if (fileType != "txt") {
         std::cerr << "ERROR: bad fileName or stdVersion provided to SyntaxHighlighter!\n";
     }
 }

@@ -14,6 +14,9 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
 
 int CodeEditor::lineNumberAreaWidth()
 {
+    if (hideLineNumber) 
+        return 0;
+
     int digits = 1;
     int max = qMax(1, blockCount());
     while (max >= 10) {
