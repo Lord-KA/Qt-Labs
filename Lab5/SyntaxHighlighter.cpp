@@ -1,59 +1,36 @@
 #include "SyntaxHighlighter.hpp"
-#include <iostream>                 //TODO remove; for debug only
 
 SyntaxHighlighter::SyntaxHighlighter(QTextDocument *parent, QString fileType, QString theme, int std)
     : QSyntaxHighlighter(parent), fileType(fileType), stdVersion(std)
 {
-    cSTD   = std;
-    cppSTD = std;
-
-    /*
-    if (std == 99 || std == 14 || std == 20) {
-        fileType = "cpp";
-        cppSTD   = std;
-    } else if (std == 11 || std == 18) {
-        fileType = "c";
-        cSTD     = std;
-    }
-    */
-
     commentStartExpression = QRegularExpression("");
     commentEndExpression = QRegularExpression("");
     setupSyntaxHighlighter(fileType, theme);
 }
+
 void SyntaxHighlighter::setupSyntaxHighlighter(QString fileType, QString theme)
 {
-    languages = QString("c h cpp hpp").split(" ");
-
     setColorValues(theme);
 
-    if (languages.contains(fileType))
-        setSyntax(fileType);
-    else
-        knownLang = 0;                           // TODO set non highlight Rules!
-}
-void SyntaxHighlighter::setSyntax(QString fileType)
-{
-    if (fileType == "cpp" || fileType == "hpp" || fileType == "h") {
-        knownLang = 1;
-        setupKeywordPatterns(fileType, cppSTD);
-        setLangRules();
-    } else if (fileType == "c") {
-        knownLang = 1;
-        cSTD = 11;
-        setupKeywordPatterns(fileType, cSTD);
-        setLangRules();
-    } else {
-        knownLang = 0;
-    }
+    setSyntax(fileType, stdVersion);
 }
 
-void SyntaxHighlighter::setTheme(QString filetype, QString theme){
+void SyntaxHighlighter::setSyntax(QString newFileType, int newStdVersion)
+{
+    fileType   = newFileType;
+    stdVersion = newStdVersion;
+    setupKeywordPatterns(fileType, stdVersion);
+    setLangRules();
+}
+
+void SyntaxHighlighter::setTheme(QString filetype, QString theme)
+{
     setupSyntaxHighlighter(filetype, theme);
     rehighlight();
 }
 
-void SyntaxHighlighter::setLangRules(){
+void SyntaxHighlighter::setLangRules()
+{
     HighlightingRule rule;
 
     //Functions
@@ -64,36 +41,26 @@ void SyntaxHighlighter::setLangRules(){
 
     keywordFormat.setForeground(keywordColor);
     keywordFormat.setFontWeight(QFont::Bold);
-    if(!knownLang)
-    {
-        QStringList keywordPatterns;
-        keywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
-                        << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
-                        << "\\blong\\b" << "\\btrue\\b" << "\\bfalse\\b" << "\\bboolean\\b"
-                        << "\\bnull\\b" << "\\bthis\\b" << "\\bfinal\\b"
-                        << "\\band\\b" << "\\bor\\b" << "\\bxor\\b"
-                        << "\\bconst\\b" << "\\bstatic\\b" << "\\bsigned\\b" << "\\bunsigned\\b"
-                        << "\\bimport\\b" << "\\bnamespace\\b" << "\\breturn\\b" << "\\busing\\b"
-                        << "\\bfor\\b" << "\\bwhile\\b" << "\\bif\\b" << "\\belse\\b"
-                        << "\\bcase\\b" << "\\bswitch\\b" << "\\bdo\\b" << "\\bunion\\b"
-                        << "\\bnew\\b" << "\\bclass\\b" << "\\bprivate\\b" << "\\bprotected\\b"
-                        << "\\bpublic\\b" << "\\bvirtual\\b" << "\\bslots\\b" << "\\bvolatile\\b"
-                        << "\\babstract\\b" << "\\bextends\\b" << "\\bimplements\\b" << "\\bsuper\\b"
-                        << "\\btemplate\\b" << "\\btypedef\\b" << "\\btypename\\b"
-                        << "\\btry\\b" << "\\bcatch\\b" << "\\bthrow\\b" << "\\bbreak\\b";
-        for (const QString &pattern : keywordPatterns) {
-            rule.pattern = QRegularExpression(pattern);
-            rule.format = keywordFormat;
-            highlightingRules.append(rule);
-        }
-    }
-    else
-    {
-        for (const QString &pattern : difKeywordPatterns) {
-            rule.pattern = QRegularExpression(pattern);
-            rule.format = keywordFormat;
-            highlightingRules.append(rule);
-        }
+
+    QStringList keywordPatterns;
+    keywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
+                    << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
+                    << "\\blong\\b" << "\\btrue\\b" << "\\bfalse\\b" << "\\bboolean\\b"
+                    << "\\bnull\\b" << "\\bthis\\b" << "\\bfinal\\b"
+                    << "\\band\\b" << "\\bor\\b" << "\\bxor\\b"
+                    << "\\bconst\\b" << "\\bstatic\\b" << "\\bsigned\\b" << "\\bunsigned\\b"
+                    << "\\bimport\\b" << "\\bnamespace\\b" << "\\breturn\\b" << "\\busing\\b"
+                    << "\\bfor\\b" << "\\bwhile\\b" << "\\bif\\b" << "\\belse\\b"
+                    << "\\bcase\\b" << "\\bswitch\\b" << "\\bdo\\b" << "\\bunion\\b"
+                    << "\\bnew\\b" << "\\bclass\\b" << "\\bprivate\\b" << "\\bprotected\\b"
+                    << "\\bpublic\\b" << "\\bvirtual\\b" << "\\bslots\\b" << "\\bvolatile\\b"
+                    << "\\babstract\\b" << "\\bextends\\b" << "\\bimplements\\b" << "\\bsuper\\b"
+                    << "\\btemplate\\b" << "\\btypedef\\b" << "\\btypename\\b"
+                    << "\\btry\\b" << "\\bcatch\\b" << "\\bthrow\\b" << "\\bbreak\\b";
+    for (const QString &pattern : keywordPatterns) {
+        rule.pattern = QRegularExpression(pattern);
+        rule.format = keywordFormat;
+        highlightingRules.append(rule);
     }
 
     numberFormat.setForeground(numColor);
@@ -136,39 +103,50 @@ void SyntaxHighlighter::setLangRules(){
 
 void SyntaxHighlighter::setupKeywordPatterns(QString fileType, int stdVersion)
 {
-    std::cerr << "fileType = " << fileType.toStdString() << " | stdVersion = " << stdVersion << " \n";      //TODO remove
+    #ifdef EXTRA_VERBOSE
+        std::cerr << "fileType = #" << fileType.toStdString() << "# | stdVersion = " << stdVersion << " \n";
+    #endif
 
-    if ((fileType == "cpp" || fileType == "hpp" || fileType == "h") && stdVersion == 99)
-    {
-     difKeywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
-                        << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
-                        << "\\blong\\b" << "\\btrue\\b" << "\\bfalse\\b" << "\\bboolean\\b"
-                        << "\\bthis\\b" << "\\bfriend\\b" <<"\\bconstexpr\\b"
+    size_t i = 0;
+    while (SUPPORTED_FILETYPES[i][0] != '\0') {
+        if (fileType == QString(SUPPORTED_FILETYPES[i]))
+            break;
+        ++i;
+    }
+    if (SUPPORTED_FILETYPES[i][0] == '\0') 
+        std::cerr << "ERROR: unknown fileType provided to SyntaxHighlighter!\n";
 
-                        << "\\bconst\\b" << "\\bstatic\\b" << "\\bsigned\\b" << "\\bunsigned\\b"
-                        << "\\bnamespace\\b" << "\\breturn\\b" << "\\busing\\b"
-                        << "\\bfor\\b" << "\\bwhile\\b" << "\\bif\\b" << "\\belse\\b"
-                        << "\\bcase\\b" << "\\bswitch\\b" << "\\bdo\\b" << "\\bunion\\b"
 
-                        << "\\bnew\\b" << "\\bclass\\b" << "\\bprivate\\b" << "\\bprotected\\b"
-                        << "\\bpublic\\b" << "\\bvirtual\\b" << "\\bextern\\b" << "\\bvolatile\\b"
-                        << "\\btemplate\\b" << "\\btypedef\\b" << "\\btypename\\b"
-                        << "\\btry\\b" << "\\bcatch\\b" << "\\bthrow\\b" << "\\bbreak\\b"
-                        << "\\bgoto\\b" << "\\bregister\\b" << "\\binline\\b"
+    if ((fileType == "cpp" || fileType == "hpp" || fileType == "h") && stdVersion == 99) {
+        difKeywordPatterns  << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
+                            << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
+                            << "\\blong\\b" << "\\btrue\\b" << "\\bfalse\\b" << "\\bboolean\\b"
+                            << "\\bthis\\b" << "\\bfriend\\b" <<"\\bconstexpr\\b"
+
+                            << "\\bconst\\b" << "\\bstatic\\b" << "\\bsigned\\b" << "\\bunsigned\\b"
+                            << "\\bnamespace\\b" << "\\breturn\\b" << "\\busing\\b"
+                            << "\\bfor\\b" << "\\bwhile\\b" << "\\bif\\b" << "\\belse\\b"
+                            << "\\bcase\\b" << "\\bswitch\\b" << "\\bdo\\b" << "\\bunion\\b"
+
+                            << "\\bnew\\b" << "\\bclass\\b" << "\\bprivate\\b" << "\\bprotected\\b"
+                            << "\\bpublic\\b" << "\\bvirtual\\b" << "\\bextern\\b" << "\\bvolatile\\b"
+                            << "\\btemplate\\b" << "\\btypedef\\b" << "\\btypename\\b"
+                            << "\\btry\\b" << "\\bcatch\\b" << "\\bthrow\\b" << "\\bbreak\\b"
+                            << "\\bgoto\\b" << "\\bregister\\b" << "\\binline\\b"
 
                             << "\\band\\b" << "\\bbitor\\b" << "\\bor\\b" << "\\bxor\\b"
                             << "\\bor_eq\\b" << "\\band_eq\\b" << "\\bbitand\\b" << "\\bcompl\\b"
                             << "\\bxor_eq\\b" << "\\bnot\\b" << "\\bnot_eq\\b"
 
-                        << "\\basm\\b" << "\\bauto\\b"
-                        << "\\bbool\\b" << "\\bcontinue\\b"
-                        << "\\bdefault\\b" << "\\bdelete\\b" << "\\bdynamic_cast\\b"
-                        << "\\bexplicit\\b" << "\\bexport\\b" << "\\bmutable\\b"
-                        << "\\boperator\\b" << "\\breinterpret_cast\\b" << "\\btypeid\\b"
-                        << "\\bstatic_cast\\b" << "\\bwchar_t\\b" << "\\bfinal\\b" << "\\boverride\\b";
-    }
-    else if ((fileType == "cpp" || fileType == "hpp" || fileType == "h") && stdVersion == 14)
-    {
+                            << "\\basm\\b" << "\\bauto\\b"
+                            << "\\bbool\\b" << "\\bcontinue\\b"
+                            << "\\bdefault\\b" << "\\bdelete\\b" << "\\bdynamic_cast\\b"
+                            << "\\bexplicit\\b" << "\\bexport\\b" << "\\bmutable\\b"
+                            << "\\boperator\\b" << "\\breinterpret_cast\\b" << "\\btypeid\\b"
+                            << "\\bstatic_cast\\b" << "\\bwchar_t\\b" << "\\bfinal\\b" << "\\boverride\\b";
+
+
+    }  else if ((fileType == "cpp" || fileType == "hpp" || fileType == "h") && stdVersion == 14) {
          difKeywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
                             << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
                             << "\\blong\\b" << "\\btrue\\b" << "\\bfalse\\b" << "\\bboolean\\b"
@@ -204,9 +182,7 @@ void SyntaxHighlighter::setupKeywordPatterns(QString fileType, int stdVersion)
                             << "\\bintmax_t\\b" << "\\bwintptr_t\\b" << "\\buintmax_t\\b" << "\\buintptr_t\\b";
 
 
-    }
-    else if ((fileType == "cpp" || fileType == "hpp" || fileType == "h") && stdVersion == 20)
-    {
+    } else if ((fileType == "cpp" || fileType == "hpp" || fileType == "h") && stdVersion == 20) {
          difKeywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
                             << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
                             << "\\blong\\b" << "\\btrue\\b" << "\\bfalse\\b" << "\\bboolean\\b"
@@ -239,23 +215,24 @@ void SyntaxHighlighter::setupKeywordPatterns(QString fileType, int stdVersion)
                             << "\\bco_await\\b" << "\\bco_return \\b" << "\\bco_yield\\b" << "\\brequires\\b"
                             << "\\bstatic_cast\\b" << "\\bwchar_t\\b" << "\\bfinal\\b" << "\\boverride\\b"
                             << "\\bstatic_cast\\b" << "\\bwchar_t\\b" << "\\bfinal\\b" << "\\boverride\\b";
-    }
-    else if (stdVersion == 11){
-     difKeywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
-                        << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
-                        << "\\blong\\b"
-                        << "\\bconst\\b" << "\\bstatic\\b" << "\\bsigned\\b" << "\\bunsigned\\b"
-                        << "\\breturn\\b"
-                        << "\\bfor\\b" << "\\bwhile\\b" << "\\bif\\b" << "\\belse\\b"
-                        << "\\bcase\\b" << "\\bswitch\\b" << "\\bdo\\b" << "\\bunion\\b"
-                        << "\\bvolatile\\b" <<"\\bextern\\b" << "\\bgoto\\b" << "\\bregister\\b"
-                        << "\\btypedef\\b" <<"\\bsizeof\\b" << "\\brestrict\\b" << "\\binline\\b"
+
+
+    } else if ((fileType == "c" || fileType == "h") && stdVersion == 11){
+        difKeywordPatterns  << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
+                            << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
+                            << "\\blong\\b"
+                            << "\\bconst\\b" << "\\bstatic\\b" << "\\bsigned\\b" << "\\bunsigned\\b"
+                            << "\\breturn\\b"
+                            << "\\bfor\\b" << "\\bwhile\\b" << "\\bif\\b" << "\\belse\\b"
+                            << "\\bcase\\b" << "\\bswitch\\b" << "\\bdo\\b" << "\\bunion\\b"
+                            << "\\bvolatile\\b" <<"\\bextern\\b" << "\\bgoto\\b" << "\\bregister\\b"
+                            << "\\btypedef\\b" <<"\\bsizeof\\b" << "\\brestrict\\b" << "\\binline\\b"
                             << "\\band\\b" << "\\bbitor\\b" << "\\bor\\b" << "\\bxor\\b"
                             << "\\bor_eq\\b" << "\\band_eq\\b" << "\\bbitand\\b" << "\\bcompl\\b"
                             << "\\bxor_eq\\b" << "\\bnot\\b" << "\\bnot_eq\\b"
-                        // from C99:
-                        << "\\brestrict\\b" << "\\binline\\b"
-                        << "\\b_Complex\\b" << "\\b_Bool\\b" << "\\b_Imaginary\\b"
+                            // from C99:
+                            << "\\brestrict\\b" << "\\binline\\b"
+                            << "\\b_Complex\\b" << "\\b_Bool\\b" << "\\b_Imaginary\\b"
 
                             << "\\bint8_t\\b" << "\\bint16_t\\b" << "\\bint32_t\\b" << "\\bint64_t\\b"
                             << "\\bint_fast8_t\\b" << "\\bint_fast16_t\\b" << "\\bint_fast32_t\\b" << "\\bint_fast64_t\\b"
@@ -264,9 +241,9 @@ void SyntaxHighlighter::setupKeywordPatterns(QString fileType, int stdVersion)
                             << "\\buint_fast8_t\\b" << "\\buint_fast16_t\\b" << "\\buint_fast32_t\\b" << "\\buint_fast64_t\\b"
                             << "\\buint_least8_t\\b" << "\\buint_least16_t\\b" << "\\buint_least32_t\\b" << "\\buint_least64_t\\b"
                             << "\\bintmax_t\\b" << "\\bwintptr_t\\b" << "\\buintmax_t\\b" << "\\buintptr_t\\b";
+    
 
-    }
-    else if (stdVersion == 18){
+    } else if ((fileType == "c" || fileType == "h") && stdVersion == 18){
          difKeywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
                             << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
                             << "\\blong\\b"
@@ -285,10 +262,13 @@ void SyntaxHighlighter::setupKeywordPatterns(QString fileType, int stdVersion)
                             << "\\b_Alignas\\b" << "\\b_Alignof\\b" << "\\b_Atomic\\b" << "\\b_Bool\\b"
                             << "\\b_Complex\\b" << "\\b_Generic\\b" << "\\b_Imaginary\\b" << "\\b_Noreturn\\b"
                             << "\\b_Static_assert\\b" << "\\b_Thread_local\\b";
-        }
+    } else {
+        std::cerr << "ERROR: bad fileName or stdVersion provided to SyntaxHighlighter!\n";
+    }
 }
 
-void SyntaxHighlighter::setColorValues(QString theme){
+void SyntaxHighlighter::setColorValues(QString theme)
+{
     if (theme == "monokai"){
         // monokai
         commonTextColorIsWhite = 1;
@@ -305,6 +285,7 @@ void SyntaxHighlighter::setColorValues(QString theme){
         htmlAttributesColor = QColor(166, 226, 46);
         cssClassesIDsColor = QColor(166, 226, 46);
         cssAttributesColor = QColor(102, 217, 239);
+
     } else if (theme == "tomorrow"){
         // tomorrow
         commonTextColorIsWhite = 0;
@@ -321,6 +302,7 @@ void SyntaxHighlighter::setColorValues(QString theme){
         htmlAttributesColor = QColor(245, 135, 32);
         cssClassesIDsColor = QColor(62, 153, 158);
         cssAttributesColor = QColor(77, 77, 76);
+
     } else if (theme == "tomorrowNight"){
         // tomorrow night
         commonTextColorIsWhite = 1;
@@ -337,7 +319,8 @@ void SyntaxHighlighter::setColorValues(QString theme){
         htmlAttributesColor = QColor(222, 146, 95);
         cssClassesIDsColor = QColor(138, 189, 181);
         cssAttributesColor = QColor(197, 199, 198);
-    } else {
+
+    } else if (theme == "solarized") {
         // Solarized
         commonTextColorIsWhite = 0;
         keywordColor = QColor(181, 137, 0);
@@ -353,6 +336,8 @@ void SyntaxHighlighter::setColorValues(QString theme){
         htmlAttributesColor = QColor(181, 137, 0);
         cssClassesIDsColor = QColor(133, 153, 0);
         cssAttributesColor = QColor(77,171,171);
+    } else {
+        std::cerr << "ERROR: unknown theme provided to SyntaxHighlighter!\n";
     }
 }
 

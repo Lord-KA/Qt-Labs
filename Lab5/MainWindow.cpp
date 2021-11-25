@@ -49,7 +49,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     setDefaultFilename();
 
-    syntaxHighlighter = new SyntaxHighlighter(area->document(), "hpp", "tomorrow", 14);
+    syntaxHighlighter = new SyntaxHighlighter(area->document(), "cpp", "tomorrow", 20);
 }
 
 void MainWindow::changeFont()

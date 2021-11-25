@@ -5,13 +5,20 @@
 #include <QTextDocument>
 #include <QRegularExpression>
 
+#include <iostream>
+
+static const size_t MAX_FILETYPE_LEN = 10;
+static const char SUPPORTED_THEMES[][MAX_FILETYPE_LEN] = {"monokai", "tomorrow", "tomorrowNight", "solarized"};
+static const char SUPPORTED_FILETYPES[][MAX_FILETYPE_LEN] = {"c", "h", "cpp", "hpp", ""};
+static const int  SUPPORTED_STDVERSIONS[] = {99, 11, 14, 20, 18};
+
 class SyntaxHighlighter : QSyntaxHighlighter {
 public:
     SyntaxHighlighter(QTextDocument *parent, QString fileType, QString theme, int stdVersion);
     
     void setupSyntaxHighlighter(QString fileType, QString theme);
 
-    void setSyntax(QString fileType);
+    void setSyntax(QString fileType, int stdVersion);
     void setTheme (QString fileType, QString theme);
 
     void setLangRules();
@@ -25,12 +32,10 @@ public:
 
 private:
     QString fileType, theme;
-    int cSTD, cppSTD;
     int stdVersion;
 
     QStringList languages;
     QRegularExpression commentStartExpression, commentEndExpression;
-    bool knownLang;
     bool commonTextColorIsWhite = 1;
 
     QStringList difKeywordPatterns;
