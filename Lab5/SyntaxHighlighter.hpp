@@ -9,21 +9,38 @@
 
 static const size_t MAX_FILETYPE_LEN = 100;
 static const char SUPPORTED_THEMES[][MAX_FILETYPE_LEN] = {"monokai", "tomorrow", "tomorrowNight", "solarized"};
-static const char SUPPORTED_FILETYPES[][MAX_FILETYPE_LEN] = {"c", "h", "cpp", "hpp", "txt", ""};
-static const int  SUPPORTED_STDVERSIONS[] = {99, 11, 14, 20, 18};
+
+enum class HighlightingSetup {
+    none = 0,
+    cpp99,
+    cpp14,
+    cpp20,
+    c11,
+    c18,
+    CNT,
+};
+
+static const char HighlightingSetups[][MAX_FILETYPE_LEN] = {
+        "none",
+        "C++99",
+        "C++14",
+        "C++20",
+        "C11",
+        "C18",
+    };
 
 class SyntaxHighlighter : QSyntaxHighlighter {
 public:
-    SyntaxHighlighter(QTextDocument *parent, QString fileType, QString theme, int stdVersion);
+    SyntaxHighlighter(QTextDocument *parent, HighlightingSetup setup, QString theme);
     
-    void setupSyntaxHighlighter(QString fileType, QString theme);
+    void setupSyntaxHighlighter(HighlightingSetup setup, QString theme);
 
-    void setSyntax(QString fileType, int stdVersion);
-    void setTheme (QString fileType, QString theme);
+    void setSyntax(HighlightingSetup setup);
+    void setTheme (HighlightingSetup setup, QString theme);
 
     void setLangRules();
 
-    void setupKeywordPatterns(QString fileType, int stdVersion);
+    void setupKeywordPatterns();
 
     void setColorValues(QString theme);
 
@@ -31,10 +48,9 @@ public:
 
 
 private:
-    QString fileType, theme;
-    int stdVersion;
+    HighlightingSetup setup;
+    QString theme;
 
-    QStringList languages;
     QRegularExpression commentStartExpression, commentEndExpression;
     bool commonTextColorIsWhite = 1;
 
@@ -81,5 +97,4 @@ private:
     QColor htmlAttributesColor;
     QColor cssClassesIDsColor;
     QColor cssAttributesColor;
-
 };

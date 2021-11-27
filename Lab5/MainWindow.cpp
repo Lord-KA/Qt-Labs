@@ -25,7 +25,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     setDefaultFilename();
 
-    syntaxHighlighter = new SyntaxHighlighter(area->document(), "txt", "tomorrow", -1);
+    syntaxHighlighter = new SyntaxHighlighter(area->document(), HighlightingSetup::none, "tomorrow");
 }
 
 void MainWindow::toolbarSetup()
@@ -87,6 +87,16 @@ void MainWindow::menubarSetup()
             });
     viewMenu->addAction(actionHideLineNumBox);
     viewMenu->addAction(toolbar->toggleViewAction());
+    QActionGroup *highlightingGroup = new QActionGroup(viewMenu);
+    for (int i = 0; i < static_cast<int>(HighlightingSetup::CNT); ++i) {
+        QAction *action = new QAction(HighlightingSetups[i], highlightingGroup);
+        connect(action, &QAction::triggered, this, [this, i](){this->syntaxHighlighter->setSyntax(static_cast<HighlightingSetup>(i));});
+        // action = highlightingGroup->addAction(viewMenu->addAction(HighlightingSetups[i], this, [this, i](){this->syntaxHighlighter->setSyntax(static_cast<HighlightingSetup>(i));}));
+        highlightingGroup->addAction(action);
+        if (i == 0)
+            action->setChecked(true);
+    }
+    highlightingGroup->setVisible(true);
 }
 
 void MainWindow::changeBackgroundColor()

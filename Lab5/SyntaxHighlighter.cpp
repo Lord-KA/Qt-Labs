@@ -1,37 +1,36 @@
 #include "SyntaxHighlighter.hpp"
 
-SyntaxHighlighter::SyntaxHighlighter(QTextDocument *parent, QString fileType, QString theme, int std)
-    : QSyntaxHighlighter(parent), fileType(fileType), stdVersion(std)
+SyntaxHighlighter::SyntaxHighlighter(QTextDocument *parent, HighlightingSetup setup, QString theme)
+    : QSyntaxHighlighter(parent), setup(setup)
 {
     commentStartExpression = QRegularExpression("");
     commentEndExpression = QRegularExpression("");
-    setupSyntaxHighlighter(fileType, theme);
+    setupSyntaxHighlighter(setup, theme);
 }
 
-void SyntaxHighlighter::setupSyntaxHighlighter(QString fileType, QString theme)
+void SyntaxHighlighter::setupSyntaxHighlighter(HighlightingSetup setup, QString theme)
 {
     setColorValues(theme);
 
-    setSyntax(fileType, stdVersion);
+    setSyntax(setup);
 }
 
-void SyntaxHighlighter::setSyntax(QString newFileType, int newStdVersion)
+void SyntaxHighlighter::setSyntax(HighlightingSetup newSetup)
 {
-    fileType   = newFileType;
-    stdVersion = newStdVersion;
-    setupKeywordPatterns(fileType, stdVersion);
+    setup = newSetup;
+    setupKeywordPatterns();
     setLangRules();
 }
 
-void SyntaxHighlighter::setTheme(QString filetype, QString theme)
+void SyntaxHighlighter::setTheme(HighlightingSetup newSetup, QString theme)
 {
-    setupSyntaxHighlighter(filetype, theme);
+    setupSyntaxHighlighter(newSetup, theme);
     rehighlight();
 }
 
 void SyntaxHighlighter::setLangRules()
 {
-    if (fileType == "txt") 
+    if (setup == HighlightingSetup::none) 
         return;
 
     HighlightingRule rule;
@@ -104,23 +103,15 @@ void SyntaxHighlighter::setLangRules()
     commentEndExpression = QRegularExpression("\\*/");
 }
 
-void SyntaxHighlighter::setupKeywordPatterns(QString fileType, int stdVersion)
+void SyntaxHighlighter::setupKeywordPatterns()
 {
     #ifdef EXTRA_VERBOSE
-        std::cerr << "fileType = #" << fileType.toStdString() << "# | stdVersion = " << stdVersion << " \n";
+        std::cerr << "setup = " << static_cast<size_t>(setup) << " (" << HighlightingSetups[static_cast<size_t>(setup)] << ")\n";
     #endif
 
-    size_t i = 0;
-    while (SUPPORTED_FILETYPES[i][0] != '\0') {
-        if (fileType == QString(SUPPORTED_FILETYPES[i]))
-            break;
-        ++i;
-    }
-    if (SUPPORTED_FILETYPES[i][0] == '\0') 
-        std::cerr << "ERROR: unknown fileType provided to SyntaxHighlighter!\n";
 
-
-    if ((fileType == "cpp" || fileType == "hpp" || fileType == "h") && stdVersion == 99) {
+    switch (setup) {
+    case (HighlightingSetup::cpp99):
         difKeywordPatterns  << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
                             << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
                             << "\\blong\\b" << "\\btrue\\b" << "\\bfalse\\b" << "\\bboolean\\b"
@@ -147,9 +138,9 @@ void SyntaxHighlighter::setupKeywordPatterns(QString fileType, int stdVersion)
                             << "\\bexplicit\\b" << "\\bexport\\b" << "\\bmutable\\b"
                             << "\\boperator\\b" << "\\breinterpret_cast\\b" << "\\btypeid\\b"
                             << "\\bstatic_cast\\b" << "\\bwchar_t\\b" << "\\bfinal\\b" << "\\boverride\\b";
-
-
-    }  else if ((fileType == "cpp" || fileType == "hpp" || fileType == "h") && stdVersion == 14) {
+        break;
+            
+    case (HighlightingSetup::cpp14):
          difKeywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
                             << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
                             << "\\blong\\b" << "\\btrue\\b" << "\\bfalse\\b" << "\\bboolean\\b"
@@ -183,9 +174,9 @@ void SyntaxHighlighter::setupKeywordPatterns(QString fileType, int stdVersion)
                             << "\\buint_fast8_t\\b" << "\\buint_fast16_t\\b" << "\\buint_fast32_t\\b" << "\\buint_fast64_t\\b"
                             << "\\buint_least8_t\\b" << "\\buint_least16_t\\b" << "\\buint_least32_t\\b" << "\\buint_least64_t\\b"
                             << "\\bintmax_t\\b" << "\\bwintptr_t\\b" << "\\buintmax_t\\b" << "\\buintptr_t\\b";
+        break;
 
-
-    } else if ((fileType == "cpp" || fileType == "hpp" || fileType == "h") && stdVersion == 20) {
+    case (HighlightingSetup::cpp20):
          difKeywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
                             << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
                             << "\\blong\\b" << "\\btrue\\b" << "\\bfalse\\b" << "\\bboolean\\b"
@@ -218,9 +209,9 @@ void SyntaxHighlighter::setupKeywordPatterns(QString fileType, int stdVersion)
                             << "\\bco_await\\b" << "\\bco_return \\b" << "\\bco_yield\\b" << "\\brequires\\b"
                             << "\\bstatic_cast\\b" << "\\bwchar_t\\b" << "\\bfinal\\b" << "\\boverride\\b"
                             << "\\bstatic_cast\\b" << "\\bwchar_t\\b" << "\\bfinal\\b" << "\\boverride\\b";
+        break;
 
-
-    } else if ((fileType == "c" || fileType == "h") && stdVersion == 11){
+    case (HighlightingSetup::c11):
         difKeywordPatterns  << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
                             << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
                             << "\\blong\\b"
@@ -244,9 +235,9 @@ void SyntaxHighlighter::setupKeywordPatterns(QString fileType, int stdVersion)
                             << "\\buint_fast8_t\\b" << "\\buint_fast16_t\\b" << "\\buint_fast32_t\\b" << "\\buint_fast64_t\\b"
                             << "\\buint_least8_t\\b" << "\\buint_least16_t\\b" << "\\buint_least32_t\\b" << "\\buint_least64_t\\b"
                             << "\\bintmax_t\\b" << "\\bwintptr_t\\b" << "\\buintmax_t\\b" << "\\buintptr_t\\b";
-    
+        break;
 
-    } else if ((fileType == "c" || fileType == "h") && stdVersion == 18){
+    case (HighlightingSetup::c18):
          difKeywordPatterns << "\\bchar\\b" << "\\bint\\b" << "\\bfloat\\b" << "\\bdouble\\b"
                             << "\\bstruct\\b" << "\\benum\\b" << "\\bvoid\\b" << "\\bshort\\b"
                             << "\\blong\\b"
@@ -265,9 +256,10 @@ void SyntaxHighlighter::setupKeywordPatterns(QString fileType, int stdVersion)
                             << "\\b_Alignas\\b" << "\\b_Alignof\\b" << "\\b_Atomic\\b" << "\\b_Bool\\b"
                             << "\\b_Complex\\b" << "\\b_Generic\\b" << "\\b_Imaginary\\b" << "\\b_Noreturn\\b"
                             << "\\b_Static_assert\\b" << "\\b_Thread_local\\b";
+        break;
 
-    } else if (fileType != "txt") {
-        std::cerr << "ERROR: bad fileName or stdVersion provided to SyntaxHighlighter!\n";
+    case (HighlightingSetup::none):
+        break;
     }
 }
 
