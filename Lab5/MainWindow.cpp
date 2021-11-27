@@ -3,6 +3,46 @@
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent)
 {
+    toolbarSetup();
+
+    menubarSetup();
+
+    statusbar = new QStatusBar(this);
+    setStatusBar(statusbar);
+     
+    area = new CodeEditor();
+
+    findDialog = new FindDialog(this);
+    findDialog->setModal(false);
+    findDialog->setPlainTextEdit(area);
+     
+    findReplaceDialog = new FindReplaceDialog(this);
+    findReplaceDialog->setModal(false);
+    findReplaceDialog->setPlainTextEdit(area);
+    
+    setCentralWidget(area);
+    setMinimumSize(1280, 720);
+
+    setDefaultFilename();
+
+    syntaxHighlighter = new SyntaxHighlighter(area->document(), "txt", "tomorrow", -1);
+}
+
+void MainWindow::toolbarSetup()
+{
+    toolbar = addToolBar("ToolBar");
+    toolbar->addAction("New",   this, SLOT(newFile()));
+    toolbar->addAction("Open",  this, SLOT(openFile()));
+    toolbar->addAction("Undo",  this, [&, this](){this->area->undo();});
+    toolbar->addAction("Redo",  this, [&, this](){this->area->redo();});
+    toolbar->addAction("Copy",  this, [&, this](){this->area->copy();});
+    toolbar->addAction("Paste", this, [&, this](){this->area->paste();});
+    toolbar->addAction("Find",               this, [&, this](){this->findDialog->show();});
+    toolbar->addAction("Find and Replace",   this, [&, this](){this->findReplaceDialog->show();});
+}
+
+void MainWindow::menubarSetup()
+{
 	mainMenu = menuBar()->addMenu("File");
 	actionQuit   = mainMenu->addAction("Quit",    this, SLOT(quit()));
 	actionOpen   = mainMenu->addAction("Open",    this, SLOT(openFile()));
@@ -46,27 +86,7 @@ MainWindow::MainWindow(QWidget* parent)
                 area->updateLineNumberAreaWidth();
             });
     viewMenu->addAction(actionHideLineNumBox);
-    
-
-
-    
-    area = new CodeEditor();
-
-    findDialog = new FindDialog(this);
-    findDialog->setModal(false);
-    findDialog->setPlainTextEdit(area);
-     
-    findReplaceDialog = new FindReplaceDialog(this);
-    findReplaceDialog->setModal(false);
-    findReplaceDialog->setPlainTextEdit(area);
-    
-    setCentralWidget(area);
-
-	setFixedSize(1280, 720);
-
-    setDefaultFilename();
-
-    syntaxHighlighter = new SyntaxHighlighter(area->document(), "txt", "tomorrow", -1);
+    viewMenu->addAction(toolbar->toggleViewAction());
 }
 
 void MainWindow::changeBackgroundColor()

@@ -19,6 +19,7 @@
 #include <QCheckBox>
 #include <QWidgetAction>
 #include <QColorDialog>
+#include <QStatusBar>
 
 #include <iostream>
 #include <string>
@@ -46,6 +47,9 @@ private:
     void setDefaultFilename();
     void exitApp();
 
+    void toolbarSetup();
+    void menubarSetup();
+
 public slots:
     void quit();
     void openFile();
@@ -65,6 +69,7 @@ private:
     QAction *actionChangeBackgroundColor;
 
     QToolBar   *toolbar;
+    QStatusBar *statusbar;
     CodeEditor *area;
     FindDialog        *findDialog;
     FindReplaceDialog *findReplaceDialog;

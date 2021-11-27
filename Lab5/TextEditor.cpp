@@ -2,6 +2,7 @@
 
 CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
 {
+    hideLineNumber = false;
     lineNumberArea = new LineNumberArea(this);
 
     connect(this, &CodeEditor::blockCountChanged,     this, &CodeEditor::updateLineNumberAreaWidth);
