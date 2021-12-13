@@ -109,6 +109,9 @@ void MainWindow::menubarSetup()
             action->setChecked(true);
     }
     highlightingGroup->setVisible(true);
+
+    /* About */
+    menuBar()->addAction("About", this, [&, this](){aboutDialog();});
 }
 
 void MainWindow::statusbarUpdate()
@@ -285,6 +288,11 @@ void MainWindow::saveFile()
     fout.write(text.toUtf8());
     fout.write("\n");
     fout.close();
+}
+
+void MainWindow::aboutDialog()
+{
+    QMessageBox::about(this, "gCodeEditor", "gCodeEditor - made by Lord-Ka in 2021\nBuild with Qt-" + QString(QT_VERSION_STR) + "\nRuntime    Qt-" + QString(qVersion()) + "\nBuilt on " + QString(__DATE__));
 }
 
 void MainWindow::saveAsFile()

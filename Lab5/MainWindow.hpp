@@ -59,6 +59,8 @@ private:
     void readSettings();
     void writeSettings();
 
+    void aboutDialog();
+
 public slots:
     void quit();
     void openFile();
