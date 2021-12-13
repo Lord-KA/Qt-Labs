@@ -31,6 +31,8 @@ MainWindow::MainWindow(QWidget* parent)
     titleUpdate();
     statusbarUpdate();
     connect(area, &QPlainTextEdit::textChanged, this, [this](){statusbarUpdate(); unsavedChanges = true; titleUpdate();});
+
+    writeSettings();
 }
 
 void MainWindow::toolbarSetup()
@@ -139,6 +141,25 @@ void MainWindow::titleUpdate()
     if (unsavedChanges) 
         title += "*";
     setWindowTitle(title);
+}
+
+void MainWindow::writeSettings()
+{
+    QSettings settings("gSoftInc", "gCodeEditor");
+    settings.beginGroup("MainWindow");
+    settings.setValue("styling/highlighting", static_cast<int>(syntaxHighlighter->setup));
+    settings.setValue("styling/theme",        syntaxHighlighter->theme);
+    settings.endGroup();
+}
+
+void MainWindow::readSettings()
+{
+    QSettings settings("gSoftInc", "gCodeEditor");
+    
+    settings.beginGroup("MainWindow");
+    syntaxHighlighter->setup = static_cast<HighlightingSetup>(settings.value("styling/highlighting").toInt());
+    syntaxHighlighter->theme = settings.value("styling/theme").toString();
+    settings.endGroup();
 }
 
 void MainWindow::changeBackgroundColor()

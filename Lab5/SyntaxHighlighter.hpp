@@ -97,4 +97,6 @@ private:
     QColor htmlAttributesColor;
     QColor cssClassesIDsColor;
     QColor cssAttributesColor;
+
+    friend class MainWindow;
 };

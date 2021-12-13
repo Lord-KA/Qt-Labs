@@ -20,6 +20,7 @@
 #include <QWidgetAction>
 #include <QColorDialog>
 #include <QStatusBar>
+#include <QSettings>
 
 #include <iostream>
 #include <string>
@@ -55,6 +56,9 @@ private:
     void statusbarUpdate();
     void titleUpdate();
 
+    void readSettings();
+    void writeSettings();
+
 public slots:
     void quit();
     void openFile();
@@ -85,5 +89,7 @@ private:
     std::time_t lastSaveTimestamp = 0;
 
     bool unsavedChanges;
+
+    QSettings settings;
 };
 
