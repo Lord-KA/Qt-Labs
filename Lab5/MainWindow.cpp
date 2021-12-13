@@ -7,11 +7,11 @@ MainWindow::MainWindow(QWidget* parent)
 
     menubarSetup();
 
+    area = new CodeEditor();
+
     statusbar = new QStatusBar(this);
     setStatusBar(statusbar);
      
-    area = new CodeEditor();
-
     findDialog = new FindDialog(this);
     findDialog->setModal(false);
     findDialog->setPlainTextEdit(area);
@@ -26,6 +26,11 @@ MainWindow::MainWindow(QWidget* parent)
     setDefaultFilename();
 
     syntaxHighlighter = new SyntaxHighlighter(area->document(), HighlightingSetup::none, "tomorrow");
+
+    unsavedChanges = false;
+    titleUpdate();
+    statusbarUpdate();
+    connect(area, &QPlainTextEdit::textChanged, this, [this](){statusbarUpdate(); unsavedChanges = true; titleUpdate();});
 }
 
 void MainWindow::toolbarSetup()
@@ -33,16 +38,17 @@ void MainWindow::toolbarSetup()
     toolbar = addToolBar("ToolBar");
     toolbar->addAction("New",   this, SLOT(newFile()));
     toolbar->addAction("Open",  this, SLOT(openFile()));
-    toolbar->addAction("Undo",  this, [&, this](){this->area->undo();});
-    toolbar->addAction("Redo",  this, [&, this](){this->area->redo();});
-    toolbar->addAction("Copy",  this, [&, this](){this->area->copy();});
-    toolbar->addAction("Paste", this, [&, this](){this->area->paste();});
-    toolbar->addAction("Find",               this, [&, this](){this->findDialog->show();});
-    toolbar->addAction("Find and Replace",   this, [&, this](){this->findReplaceDialog->show();});
+    toolbar->addAction("Undo",  this, [&, this](){area->undo();});
+    toolbar->addAction("Redo",  this, [&, this](){area->redo();});
+    toolbar->addAction("Copy",  this, [&, this](){area->copy();});
+    toolbar->addAction("Paste", this, [&, this](){area->paste();});
+    toolbar->addAction("Find",               this, [&, this](){findDialog->show();});
+    toolbar->addAction("Find and Replace",   this, [&, this](){findReplaceDialog->show();});
 }
 
 void MainWindow::menubarSetup()
 {
+    /* Main Menu setup */
 	mainMenu = menuBar()->addMenu("File");
 	actionQuit   = mainMenu->addAction("Quit",    this, SLOT(quit()));
 	actionOpen   = mainMenu->addAction("Open",    this, SLOT(openFile()));
@@ -50,15 +56,17 @@ void MainWindow::menubarSetup()
 	actionSave   = mainMenu->addAction("Save",    this, SLOT(saveFile()));
 	actionSaveAs = mainMenu->addAction("Save as", this, SLOT(saveAsFile()));
 
+    /* Edit Menu setup */
     editMenu = menuBar()->addMenu("Edit");
-    actionUndo  = editMenu->addAction("Undo",  this, [&, this](){this->area->undo();});
-    actionRedo  = editMenu->addAction("Redo",  this, [&, this](){this->area->redo();});
-    actionCopy  = editMenu->addAction("Copy",  this, [&, this](){this->area->copy();});
-    actionPaste = editMenu->addAction("Paste", this, [&, this](){this->area->paste();});
-    actionFind        = editMenu->addAction("Find",               this, [&, this](){this->findDialog->show();});
-    actionFindReplace = editMenu->addAction("Find and Replace",   this, [&, this](){this->findReplaceDialog->show();});
-    actionSelectAll   = editMenu->addAction("Select All",         this, [&, this](){this->area->selectAll();});
+    actionUndo  = editMenu->addAction("Undo",  this, [&, this](){area->undo();});
+    actionRedo  = editMenu->addAction("Redo",  this, [&, this](){area->redo();});
+    actionCopy  = editMenu->addAction("Copy",  this, [&, this](){area->copy();});
+    actionPaste = editMenu->addAction("Paste", this, [&, this](){area->paste();});
+    actionFind        = editMenu->addAction("Find",               this, [&, this](){findDialog->show();});
+    actionFindReplace = editMenu->addAction("Find and Replace",   this, [&, this](){findReplaceDialog->show();});
+    actionSelectAll   = editMenu->addAction("Select All",         this, [&, this](){area->selectAll();});
     
+    /* Format Menu setup */
     formatMenu = menuBar()->addMenu("Format");
     actionChangeFont = formatMenu->addAction("Change font", this, SLOT(changeFont()));
     QWidgetAction *actionWrapperBox = new QWidgetAction(formatMenu);
@@ -67,10 +75,11 @@ void MainWindow::menubarSetup()
     actionWrapperBox->setDefaultWidget(wrapperBox);
     connect(wrapperBox, &QCheckBox::stateChanged, this, [this, wrapperBox]()
             {
-                this->area->setLineWrapMode((QPlainTextEdit::LineWrapMode)!wrapperBox->checkState());
+                area->setLineWrapMode((QPlainTextEdit::LineWrapMode)!wrapperBox->checkState());
             });
     formatMenu->addAction(actionWrapperBox);
 
+    /* View Menu setup */
     viewMenu = menuBar()->addMenu("View");
     actionChangeBackgroundColor = viewMenu->addAction("Change background color", this, SLOT(changeBackgroundColor()));
     QWidgetAction *actionHideLineNumBox = new QWidgetAction(formatMenu);
@@ -87,16 +96,49 @@ void MainWindow::menubarSetup()
             });
     viewMenu->addAction(actionHideLineNumBox);
     viewMenu->addAction(toolbar->toggleViewAction());
+    /* Highlighting setup */            //TODO
     QActionGroup *highlightingGroup = new QActionGroup(viewMenu);
     for (int i = 0; i < static_cast<int>(HighlightingSetup::CNT); ++i) {
         QAction *action = new QAction(HighlightingSetups[i], highlightingGroup);
         connect(action, &QAction::triggered, this, [this, i](){this->syntaxHighlighter->setSyntax(static_cast<HighlightingSetup>(i));});
-        // action = highlightingGroup->addAction(viewMenu->addAction(HighlightingSetups[i], this, [this, i](){this->syntaxHighlighter->setSyntax(static_cast<HighlightingSetup>(i));}));
+        action = highlightingGroup->addAction(viewMenu->addAction(HighlightingSetups[i], this, [this, i](){syntaxHighlighter->setSyntax(static_cast<HighlightingSetup>(i));}));
         highlightingGroup->addAction(action);
         if (i == 0)
             action->setChecked(true);
     }
     highlightingGroup->setVisible(true);
+}
+
+void MainWindow::statusbarUpdate()
+{
+    QTextCursor cursor = area->textCursor();
+    size_t line = cursor.blockNumber() + 1;
+    size_t pos  = cursor.positionInBlock() + 1;
+    cursor.movePosition(QTextCursor::End);
+    size_t lineCount  = cursor.blockNumber() + 1;
+    size_t charsCount = cursor.position() + 1;
+    size_t wordCount  = area->toPlainText().split(QRegExp("(\\s|\\n|\\r)+"),
+                                                  QString::SkipEmptyParts).count();
+
+
+    #ifdef EXTRA_VERBOSE
+        fprintf(stderr, "line = %lu, pos = %lu\n", line, pos);
+    #endif
+
+    std::tm *now = std::localtime(&lastSaveTimestamp);
+    QString message =          QString::number(line) +          ":" + QString::number(pos) + 
+                     " | "   + QString::number(now->tm_hour) +  ":" + QString::number(now->tm_min) +   ":" + QString::number(now->tm_sec) +
+                     " | l:" + QString::number(lineCount) + " | w:" + QString::number(wordCount) + " | c:" + QString::number(charsCount) + 
+                     " |Kb:" + QString::number(charsCount / 1024);
+    statusbar->showMessage(message);
+}
+
+void MainWindow::titleUpdate()
+{
+    QString title = filename;
+    if (unsavedChanges) 
+        title += "*";
+    setWindowTitle(title);
 }
 
 void MainWindow::changeBackgroundColor()
@@ -183,8 +225,9 @@ void MainWindow::quit()
     if (reply == QMessageBox::Save) {
         saveFile();
         exitApp();
-    } else if (reply == QMessageBox::Close)
+    } else if (reply == QMessageBox::Close) {
         exitApp();
+    }
 }
 
 void MainWindow::setDefaultFilename()
@@ -206,6 +249,10 @@ void MainWindow::saveFile()
     if (filename.isEmpty()) {
         setDefaultFilename();
     }
+    lastSaveTimestamp = std::time(0);
+    statusbarUpdate();
+    unsavedChanges = false;
+    titleUpdate();
 
     #ifdef EXTRA_VERBOSE
         std::cerr << "Saving File to " << filename.toStdString() << "!\n";
@@ -221,6 +268,10 @@ void MainWindow::saveFile()
 void MainWindow::saveAsFile()
 {
     filename = QFileDialog::getSaveFileName(this, "Save file as", ".");
+    lastSaveTimestamp = std::time(0);
+    statusbarUpdate();
+    unsavedChanges = false;
+    titleUpdate();
 
     #ifdef EXTRA_VERBOSE
         std::cerr << "Saving File As to " << filename.toStdString() << "!\n";
@@ -232,6 +283,10 @@ void MainWindow::saveAsFile()
 void MainWindow::openFile() 
 {
     filename = QFileDialog::getOpenFileName(this, "Open", ".");
+    lastSaveTimestamp = std::time(0);
+    statusbarUpdate();
+    unsavedChanges = false;
+    titleUpdate();
 
     #ifdef EXTRA_VERBOSE
         std::cerr << "Opening File " << filename.toStdString() << "!\n";
@@ -248,6 +303,10 @@ void MainWindow::newFile()
 {
    
     setDefaultFilename();
+    lastSaveTimestamp = std::time(0);
+    statusbarUpdate();
+    unsavedChanges = false;
+    titleUpdate();
 
     #ifdef EXTRA_VERBOSE
         std::cerr << "Creating new File " << filename.toStdString() << " !\n";

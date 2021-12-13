@@ -30,12 +30,14 @@ void SyntaxHighlighter::setTheme(HighlightingSetup newSetup, QString theme)
 
 void SyntaxHighlighter::setLangRules()
 {
-    if (setup == HighlightingSetup::none) 
+    if (setup == HighlightingSetup::none) {
+        highlightingRules = {};
         return;
+    }
 
     HighlightingRule rule;
 
-    //Functions
+    /* Functions highlighting rules */
     functionFormat.setForeground(functionsColor);
     rule.pattern = QRegularExpression("\\b[A-Za-z0-9_]+(?=\\()");
     rule.format = functionFormat;

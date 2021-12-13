@@ -24,6 +24,8 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <chrono>
+#include <ctime>
 
 #include "TextEditor.hpp"
 #include "SyntaxHighlighter.hpp"
@@ -49,6 +51,9 @@ private:
 
     void toolbarSetup();
     void menubarSetup();
+
+    void statusbarUpdate();
+    void titleUpdate();
 
 public slots:
     void quit();
@@ -76,5 +81,9 @@ private:
     QString filename;
 
     SyntaxHighlighter *syntaxHighlighter;
+    
+    std::time_t lastSaveTimestamp = 0;
+
+    bool unsavedChanges;
 };
 
