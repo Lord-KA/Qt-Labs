@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget* parent)
     statusbarUpdate();
     connect(area, &QPlainTextEdit::textChanged, this, [this](){statusbarUpdate(); unsavedChanges = true; titleUpdate();});
 
-    writeSettings();
+    readSettings();
 }
 
 void MainWindow::toolbarSetup()
@@ -229,7 +229,8 @@ void MainWindow::exitApp()
     #ifdef EXTRA_VERBOSE
         std::cerr << "Exiting the application!\n";
     #endif
-    
+ 
+    writeSettings();
     exit(0);
 }
 
