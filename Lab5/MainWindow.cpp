@@ -292,7 +292,7 @@ void MainWindow::saveFile()
 
 void MainWindow::aboutDialog()
 {
-    QMessageBox::about(this, "gCodeEditor", "gCodeEditor - made by Lord-Ka in 2021\nBuild with Qt-" + QString(QT_VERSION_STR) + "\nRuntime    Qt-" + QString(qVersion()) + "\nBuilt on " + QString(__DATE__));
+    QMessageBox::about(this, "gCodeEditor", "gCodeEditor - made by Lord-Ka in 2021\nBuilt with Qt-" + QString(QT_VERSION_STR) + "\nRuntime    Qt-" + QString(qVersion()) + "\nBuilt on " + QString(__DATE__));
 }
 
 void MainWindow::saveAsFile()
