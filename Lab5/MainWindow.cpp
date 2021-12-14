@@ -30,7 +30,7 @@ MainWindow::MainWindow(QWidget* parent)
     unsavedChanges = false;
     titleUpdate();
     statusbarUpdate();
-    connect(area, &QPlainTextEdit::textChanged, this, [this](){statusbarUpdate(); unsavedChanges = true; titleUpdate();});
+    connect(area, &QPlainTextEdit::cursorPositionChanged, this, [this](){statusbarUpdate(); unsavedChanges = true; titleUpdate();});
 
     readSettings();
 }

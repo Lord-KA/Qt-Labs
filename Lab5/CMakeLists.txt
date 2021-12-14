@@ -10,8 +10,9 @@ if(CMAKE_VERSION VERSION_LESS "3.7.0")
     set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -g -D EXTRA_VERBOSE" CACHE STRING "Comment" FORCE)
-set(CMAKE_CXX_FLAGS_SANITIZER "${CMAKE_CXX_FLAGS} -Wpedantic -Wall -Wextra -Wformat=2 -fsanitize=address,undefined -g" CACHE STRING "Comment" FORCE)
+set(CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} -std=c++20" CACHE STRING "Comment" FORCE)
+set(CMAKE_CXX_FLAGS_RELEASE   "${CMAKE_CXX_FLAGS} -D NDEBUG" CACHE STRING "Comment" FORCE)
+set(CMAKE_CXX_FLAGS_SANITIZER "${CMAKE_CXX_FLAGS} -Wpedantic -Wall -Wextra -Wformat=2 -fsanitize=address,undefined -g -D EXTRA_VERBOSE" CACHE STRING "Comment" FORCE)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
@@ -29,7 +30,7 @@ if(NOT frdialog_POPULATED)
 endif()
 
 
-add_executable( run
+add_executable( gCodeEditor
     main.cpp  
     MainWindow.cpp 
     TextEditor.cpp 
@@ -39,8 +40,8 @@ add_executable( run
     SyntaxHighlighter.cpp
 )
 
-target_link_libraries(run Qt5::Widgets)
-target_link_libraries(run QtFindReplaceDialog)
+target_link_libraries(gCodeEditor Qt5::Widgets)
+target_link_libraries(gCodeEditor QtFindReplaceDialog)
 
 message("                                                                                                                                         ")
 message("                                                                                                                                         ")
